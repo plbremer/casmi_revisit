@@ -78,7 +78,7 @@ if __name__=="__main__":
         how='left'
     )
 
-    combined_pos['ion_mode']='posative'
+    combined_pos['ion_mode']='positive'
     combined_pos['ms1_tolerance']=10
     combined_pos['ms2_tolerance']=10
     combined_pos['ms1_tolerance_unit']='ppm'

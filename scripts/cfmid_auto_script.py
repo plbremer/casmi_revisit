@@ -9,7 +9,7 @@ import os
 
 def generate_identify_post_request(series):
 
-    print(series)
+    # print(series)
     #databases set to all by just listing them
     ms1_tolerance=series['ms1_tolerance']
     ms2_tolerance=series['ms2_tolerance']
@@ -82,14 +82,14 @@ def generate_identify_post_request(series):
         payload['high_spectra']=payload['high_spectra'].replace('\\n','\n')
     except AttributeError:
         pass
-    pprint(payload)
-    print(series['energy0'])
-    print(energy0)
+    # pprint(payload)
+    # print(series['energy0'])
+    # print(energy0)
     identify_request=requests.post(
        'https://cfmid.wishartlab.com/identify/new',
         data=payload
     )
-    print(identify_request.url)
+    # print(identify_request.url)
     #hold=input('hold')
     return identify_request.url#,request.status_code
 
@@ -105,7 +105,7 @@ if __name__ == "__main__":
 
 
     for index,series in input_panda.iterrows():
-        if index<=5 or index >20:
+        if index<186:
             continue
 
         # print(series)
@@ -135,19 +135,19 @@ if __name__ == "__main__":
         #result_url,result_code=generate_identify_post_request(series)
         identify_url=generate_identify_post_request(series)
 
-        time.sleep(60)
+        time.sleep(150)
 
         get_hashed_result=requests.get(
             identify_url[:-7]
         )
 
-        time.sleep(60)
+        time.sleep(30)
 
         get_code=get_hashed_result.status_code
 
         print('index '+str(index))
         print('identify_url '+identify_url)
-        print('get_code '+get_code)
+        print('get_code '+str(get_code))
 
         #if we get the "Something went wrong" webpage
         if get_code==500:
