@@ -15,7 +15,7 @@ def generate_identify_post_request(series):
     ms2_tolerance=series['ms2_tolerance']
     ms1_tolerance_unit=series['ms1_tolerance_unit']
     ms2_tolerance_unit=series['ms2_tolerance_unit']
-    precursor_mass=series['precursor m/z']
+    precursor_mass=series['precursor_mass']
     adduct=series['adduct']
     ion_mode=series['ion_mode']
     energy0=series['energy0']
@@ -63,7 +63,7 @@ def generate_identify_post_request(series):
         "high_spectra": energy2,
         "identify_query[input_file]": '(binary)',
         "identify_query[scoring_function]": scoring_function,
-        "identify_query[num_results]": 10,
+        "identify_query[num_results]": 25,
         "mass_tol": ms2_tolerance,
         "mass_tol_units": ms2_tolerance_unit,
         "identify_query[threshold]": 0.001,
@@ -98,17 +98,18 @@ def convert_smiles_to_inchikey(smiles):
 
 if __name__ == "__main__":
 
-    input_panda=pd.read_csv('./test_input.txt',sep='	')
+    cfmid_input_address='/home/rictuar/coding_projects/fiehn_work/assistance_arpana/cfmid_identification/step_2_combined_pandas/cfmid_input.bin'
+    input_panda=pd.read_pickle(cfmid_input_address)
     #swap nan with None
     input_panda=input_panda.replace({np.nan:None})
 
 
     for index,series in input_panda.iterrows():
-        # if index==3 or index==2 or index==1:
-        #     continue
+        if index<=5 or index >20:
+            continue
 
-        print(series)
-        print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+        # print(series)
+        # print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
         
         prediction_dict={
             'rank':[],
@@ -117,7 +118,20 @@ if __name__ == "__main__":
             'direct_parent':[],
             'alternative_parents':[]
         }
-        
+
+        #cfmid doesnt handle this adduct
+        if series['adduct']=='[M+FA-H]-':
+            prediction_dict['rank'].append('adduct_[M+FA-H]-')
+            prediction_dict['inchi'].append('adduct_[M+FA-H]-')
+            prediction_dict['smiles'].append('adduct_[M+FA-H]-')
+            prediction_dict['direct_parent'].append('adduct_[M+FA-H]-')
+            prediction_dict['alternative_parents'].append('adduct_[M+FA-H]-')
+            prediction_panda=pd.DataFrame.from_dict(prediction_dict)
+            prediction_panda['inchikey']=series['inchikey']
+            prediction_panda.to_pickle('../step_3_cfmid_identification/cfmid_identification_'+series['identifier']+'_result_adduct.bin')             
+            continue
+
+
         #result_url,result_code=generate_identify_post_request(series)
         identify_url=generate_identify_post_request(series)
 
@@ -131,8 +145,9 @@ if __name__ == "__main__":
 
         get_code=get_hashed_result.status_code
 
-        print(identify_url)
-        print(get_code)
+        print('index '+str(index))
+        print('identify_url '+identify_url)
+        print('get_code '+get_code)
 
         #if we get the "Something went wrong" webpage
         if get_code==500:
@@ -142,8 +157,8 @@ if __name__ == "__main__":
             prediction_dict['direct_parent'].append('result_code_500')
             prediction_dict['alternative_parents'].append('result_code_500')
             prediction_panda=pd.DataFrame.from_dict(prediction_dict)
-            prediction_panda['inchikey']='result_code_500'
-            prediction_panda.to_pickle('./output/cfmid_identification_'+series['identifier']+'_result_500.bin')   
+            prediction_panda['inchikey']=series['inchikey']
+            prediction_panda.to_pickle('../step_3_cfmid_identification/cfmid_identification_'+series['identifier']+'_result_500.bin')   
 
         #if the query succeeds on a web-design level
         elif get_code==200:
@@ -159,9 +174,9 @@ if __name__ == "__main__":
                 prediction_dict['smiles'].append('no_ids_MADE')
                 prediction_dict['direct_parent'].append('no_ids_MADE')
                 prediction_dict['alternative_parents'].append('no_ids_MADE')
-                prediction_panda['inchikey']='no_ids_MADE'
                 prediction_panda=pd.DataFrame.from_dict(prediction_dict)
-                prediction_panda.to_pickle('./output/cfmid_identification_'+series['identifier']+'_result_noids.bin')
+                prediction_panda['inchikey']=series['inchikey']
+                prediction_panda.to_pickle('../step_3_cfmid_identification/cfmid_identification_'+series['identifier']+'_result_noids.bin')
 
             #if we have a "traditional" "successful" query
             elif len(result_table_rows)>1:
@@ -186,16 +201,11 @@ if __name__ == "__main__":
 
 
 
-                pprint(prediction_dict)
+                # pprint(prediction_dict)
 
                 prediction_panda=pd.DataFrame.from_dict(prediction_dict)
-                print(prediction_panda)
-                print(series['identifier'])
+                # print(prediction_panda)
+                # print(series['identifier'])
 
                 prediction_panda['inchikey']=prediction_panda['smiles'].apply(convert_smiles_to_inchikey)
-                prediction_panda.to_pickle('./output/cfmid_identification_'+series['identifier']+'_result_success.bin')
-
-                #hold=input('hold')
-
-        
-
+                prediction_panda.to_pickle('../step_3_cfmid_identification/cfmid_identification_'+series['identifier']+'_result_success.bin')
