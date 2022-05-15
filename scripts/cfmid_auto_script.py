@@ -105,7 +105,7 @@ if __name__ == "__main__":
 
 
     for index,series in input_panda.iterrows():
-        if index<186:
+        if index<381:
             continue
 
         # print(series)

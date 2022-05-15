@@ -26,16 +26,20 @@ if __name__ =="__main__":
         'class_of_correct_identity':[]
     }
 
+    # output_file_hashmap={
+    #     temp_unknown:
+    # }
+
     for index,series in answer_key_panda.iterrows():
 
-
-        correct_file_list=[temp_file for temp_file in output_file_list if (series['Name'] in temp_file)]
+        #yes i know that this is terrible
+        correct_file_list=[temp_file for temp_file in output_file_list if (series['Name'] == temp_file.split('_')[2])]
 
         print(series)
         print(correct_file_list)
 
         if len(correct_file_list) > 1:
-            print('we found redudnant inchikeys')
+            print('we found more than 1 file')
             hold=input('hold')
         elif len(correct_file_list)==0:
             output_dict['identifier'].append(series['Name'])
